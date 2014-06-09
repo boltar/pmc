@@ -7,9 +7,10 @@ app.use(logfmt.requestLogger());
 
 app.get('/', function(req, res) {
   res.send('Hello fool!');
+  console.log
 });
 
-app.get('/pmc', function(req, res) {
+app.post('/pmc', function(req, res) {
   res.send(url.parse(req.url))
   console.log(url.parse(req.url))
 })

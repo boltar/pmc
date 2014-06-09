@@ -1,6 +1,7 @@
-var express = require("express");
-var logfmt = require("logfmt");
-var url = require('url');
+var express = require("express")
+var logfmt = require("logfmt")
+var url = require('url')
+var map = require('through2-map')
 var app = express();
 
 app.use(logfmt.requestLogger());
@@ -11,9 +12,10 @@ app.get('/', function(req, res) {
 });
 
 app.post('/pmc', function(req, res) {
-  res.send(url.parse(req.url))
-  console.log(url.parse(req.url))
-  console.log(req)
+	req.pipe(map(function (chunk) {
+		console.log(chunk.toString())
+		return chunk.toString()
+	})).pipe(res)
 })
 
 var port = Number(process.env.PORT || 5000);

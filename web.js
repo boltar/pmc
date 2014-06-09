@@ -11,6 +11,7 @@ app.get('/', function(req, res) {
 
 app.get('/pmc', function(req, res) {
   res.send(url.parse(req.url))
+  console.log(url.parse(req.url))
 })
 
 var port = Number(process.env.PORT || 5000);

@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.4.0",
-    "logfmt": "^1.1.2"
+    "logfmt": "^1.1.2",
+    "url": "^0.10.1"
   }
 }

@@ -13,6 +13,7 @@ app.get('/', function(req, res) {
 app.post('/pmc', function(req, res) {
   res.send(url.parse(req.url))
   console.log(url.parse(req.url))
+  console.log(req)
 })
 
 var port = Number(process.env.PORT || 5000);

@@ -9,12 +9,13 @@ var options = {
 	method: 'POST'
 }
 
+date = new Date()
+
 var post_data = querystring.stringify({
-      'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
-      'output_format': 'json',
-      'output_info': 'compiled_code',
-        'warning_level' : 'QUIET',
-        'js_code' : 'codestring'
+      'user_id' : 'U02A2NEUX',
+      'user_name' : 'boltar',
+      'timestamp': date.getTime(),
+      'text' : 'pmc 357'
   });
 
 var req = http.request(options, function(res) {

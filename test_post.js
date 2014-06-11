@@ -14,8 +14,8 @@ date = new Date()
 var post_data = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
-      'timestamp': date.getTime(),
-      'text' : 'pmc 357'
+      'timestamp': '1402359176.000028', //date.getTime(),
+      'text' : 'pmc 357 yoyo first post'
   });
 
 var req = http.request(options, function(res) {

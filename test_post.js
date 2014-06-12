@@ -14,8 +14,8 @@ date = new Date()
 var post_data = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
-      'timestamp': '1402359176.000028', //date.getTime(),
-      'text' : 'pmc 357 yoyo first post'
+      'timestamp': '1402359176.000029', //date.getTime(),
+      'text' : 'pmc 556 yoyo third post'
   });
 
 var req = http.request(options, function(res) {
@@ -26,7 +26,7 @@ var req = http.request(options, function(res) {
 })
 
 req.on('error', function (e) {
-	console.log('problem with requiest: ' + e.message)
+	console.log('problem with request: ' + e.message)
 })
 
 req.write(post_data)

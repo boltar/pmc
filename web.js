@@ -30,9 +30,23 @@ function store_pmc(user_name, time_stamp, pmc, notes)
 			'c' : pmc.slice(2,3),
 			'notes' : notes}, function(err, db) {
 				console.log("inserted " + pmc + " for " + user_name);
-			})
-	})
-}
+			});
+	});
+};
+
+function undo_pmc(user_name) {
+	MongoClient.connect(mongoUri, function (err, db) {
+		if (err) {console.log("error connecting to db"); return console.dir(err);};
+		var collection = db.collection('pmc');
+		collection.findAndModify(
+			{name: user_name},
+			[['time_stamp', -1]],
+			{},
+			{remove: true}, function(err, doc) {
+				console.log("removed entry for " + user_name);
+		});
+	});
+};
 
 
 
@@ -47,11 +61,18 @@ app.post('/pmc', function(req, res) {
 
 		console.log('user ' + user_name + ' said ' 
 			+ text + ' at ' + date.toString());
-		store_pmc(user_name,
-			timestamp, 
-			text.slice(4,7), // pmc
-			text.slice(8, text.length));
-		return chunk.toString()
+
+		if (text.slice(4,8) === 'undo') {
+			undo_pmc(user_name);
+		} else if (/[0-9]{3}/.exec(text.slice(4,7)) != null) {
+			store_pmc(user_name,
+				timestamp, 
+				text.slice(4,7), // pmc
+				text.slice(8, text.length));
+			return chunk.toString()
+		} else {
+			console.log("error parsing string");
+		}
 	})).pipe(res)
 })
 

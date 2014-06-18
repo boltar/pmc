@@ -64,7 +64,7 @@ app.post('/pmc', function(req, res) {
 
 		if (text.slice(4,8) === 'undo') {
 			undo_pmc(user_name);
-		} else if (/[0-9]{3}/.exec(text.slice(4,7)) != null) {
+		} else if (/[0-9xX]{3}/.exec(text.slice(4,7)) != null) {
 			store_pmc(user_name,
 				timestamp, 
 				text.slice(4,7), // pmc

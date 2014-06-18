@@ -15,7 +15,7 @@ var post_data = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : 'pmc 556 yoyo third post'
+      'text' : 'pmc 5x6 yoyo test post'
   });
 
 var req = http.request(options, function(res) {

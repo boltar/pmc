@@ -3,18 +3,70 @@ var logfmt = require("logfmt")
 var url = require('url')
 var map = require('through2-map')
 var querystring = require ('querystring')
+var bodyParser = require('body-parser')
+var mongoskin = require('mongoskin')
+
+
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
 var mongoUri = process.env.MONGOLAB_URI || 
 	process.env.MONGOHQ_URL ||
 	'mongodb://localhost/pmc_db';
 
+var db = mongoskin.db(mongoUri, {safe:true})
 app.use(logfmt.requestLogger());
+app.use(bodyParser())
+
+
+var user_pmc_records;
+
+app.param('collectionName', function(req, res, next, collectionName){
+  req.collection = db.collection(collectionName)
+  return next()
+})
+
+app.param('name', function(req, res, next, name) {
+  db.collection("pmc").find({"name" : name}, {}).toArray(function(e, results){
+  	if (e) return next(e);
+  	res.send(results)
+  	user_pmc_records = results;
+	return next();
+  })
+})
 
 app.get('/', function(req, res) {
   res.send('Hello fool!');
   console.log
 });
+
+app.get('/collections/:collectionName', function(req, res, next) {
+  req.collection.find({} ,{limit:50, sort: [['_id',-1]]}).toArray(function(e, results){
+    if (e) return next(e)
+    res.send(results)
+  })
+})
+
+app.get('/user/:name', function(req, res, next) {
+	console.log("1 -----------")
+	console.log(user_pmc_records);
+	console.log("2 -----------")
+})
+
+function get_pmc(user_name)
+{
+	var pmc;
+	MongoClient.connect(mongoUri, function (err, db) {
+		if (err) {console.log("error connecting to db"); return console.dir(err);};
+		var collection = db.collection('pmc');
+		pmc = collection.find(
+		{
+			"name" : "boltar"
+		})
+
+		console.log(pmc);
+	});
+	return pmc;
+}
 
 function store_pmc(user_name, time_stamp, pmc, notes)
 {

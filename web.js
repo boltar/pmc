@@ -16,6 +16,7 @@ var mongoUri = process.env.MONGOLAB_URI ||
 var db = mongoskin.db(mongoUri, {safe:true})
 app.use(logfmt.requestLogger());
 app.use(bodyParser())
+app.use(express.static('public'));
 
 app.param('collectionName', function(req, res, next, collectionName){
   req.collection = db.collection(collectionName)
@@ -31,7 +32,7 @@ app.param('name', function(req, res, next, name) {
 })
 
 app.get('/', function(req, res) {
-  res.sendfile('public/index.html')
+  res.sendfile('public/index2.html')
 });
 
 app.get('/collections/:collectionName', function(req, res, next) {

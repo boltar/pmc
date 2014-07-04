@@ -35,7 +35,8 @@ app.param('name', function(req, res, next, name) {
 })
 
 app.get('/', function(req, res) {
-  res.send('Hello fool!');
+  //res.send('Hello fool!');
+  res.sendfile('public/index.html')
   console.log
 });
 

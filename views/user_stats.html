@@ -1,0 +1,24 @@
+<h1>PMC for {{name}}</h1>
+
+
+<p id ="list">
+<table >
+<tr>
+	<td> Time </td>
+	<td> Prod </td>
+	<td> Mood </td>
+	<td> Condition</td>
+	<td> Notes </td>
+</tr>
+
+{{#each entries}}
+<tr>
+<td>
+{{time_stamp}} </td> <td> {{p}} </td>  <td> {{m}} </td> <td> {{c}} </td> <td> {{notes}} </td> 
+</tr>
+
+
+{{/each}}
+</table>
+</p>
+

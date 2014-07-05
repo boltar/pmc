@@ -14,9 +14,14 @@ var mongoUri = process.env.MONGOLAB_URI ||
 	'mongodb://localhost/pmc_db';
 
 var db = mongoskin.db(mongoUri, {safe:true})
+
+//app.use(express.static('public'));
+var hbs = require('hbs')
+var blogEngine = require('./blog');
+app.set('view engine', 'html');
+app.engine('html', hbs.__express);
 app.use(logfmt.requestLogger());
-app.use(bodyParser())
-app.use(express.static('public'));
+app.use(bodyParser());
 
 app.param('collectionName', function(req, res, next, collectionName){
   req.collection = db.collection(collectionName)
@@ -24,15 +29,29 @@ app.param('collectionName', function(req, res, next, collectionName){
 })
 
 app.param('name', function(req, res, next, name) {
-  db.collection("pmc").find({"name" : name}, {}).toArray(function(e, results){
-  	if (e) return next(e);
-  	res.send(results)
-	return next();
-  })
+  db.collection("pmc")
+  	.find({"name" : name}, {})
+  	.toArray(function(e, results){
+  		if (e) return next(e);
+//  		res.send(results)
+
+	for (i = 0; i < results.length; ++i) {
+		d = new Date(results[i].time_stamp*1000)
+		results[i].time_stamp = d;
+		console.log(d)
+    }
+
+	res.render('user_stats', 
+  		{title: "PMC for " + name,
+  		 "name": name,
+  	     entries: results});
+
+		return next();
+  	})
 })
 
 app.get('/', function(req, res) {
-  res.sendfile('public/index2.html')
+  res.render('index', {title: "PMC charter"})
 });
 
 app.get('/collections/:collectionName', function(req, res, next) {
@@ -42,8 +61,11 @@ app.get('/collections/:collectionName', function(req, res, next) {
   })
 })
 
+//app.get('/user/:name', function(req, res, next) {
+//})
+
 app.get('/user/:name', function(req, res, next) {
-})
+});
 
 function get_pmc(user_name)
 {

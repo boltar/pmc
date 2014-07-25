@@ -13,15 +13,15 @@ var mongoUri = process.env.MONGOLAB_URI ||
 	process.env.MONGOHQ_URL ||
 	'mongodb://localhost/pmc_db';
 
-var db = mongoskin.db(mongoUri, {safe:true})
+//var db = mongoskin.db(mongoUri, {safe:true})
 
 //app.use(express.static('public'));
 var hbs = require('hbs')
 var blogEngine = require('./blog');
 app.set('view engine', 'html');
 app.engine('html', hbs.__express);
-app.use(logfmt.requestLogger());
-app.use(bodyParser());
+//app.use(logfmt.requestLogger());
+//app.use(bodyParser());
 
 app.param('collectionName', function(req, res, next, collectionName){
   req.collection = db.collection(collectionName)

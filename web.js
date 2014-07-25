@@ -21,7 +21,9 @@ var blogEngine = require('./blog');
 app.set('view engine', 'html');
 app.engine('html', hbs.__express);
 app.use(logfmt.requestLogger());
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 app.param('collectionName', function(req, res, next, collectionName){
   req.collection = db.collection(collectionName)

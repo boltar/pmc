@@ -8,13 +8,10 @@
   "dependencies": {
     "body-parser": "^1.5.0",
     "express": "^4.6.1",
-    "hbs": "^2.7.0",
     "logfmt": "^1.1.2",
     "map": "0.0.3",
     "mongodb": "^1.4.5",
     "mongoskin": "^1.4.4",
-    "querystring": "^0.2.0",
-    "through2-map": "^1.4.0",
-    "url": "^0.10.1"
+    "through2-map": "^1.4.0"
   }
 }

@@ -15,10 +15,8 @@ var mongoUri = process.env.MONGOLAB_URI ||
 var db = mongoskin.db(mongoUri, {safe:true})
 
 //app.use(express.static('public'));
-var hbs = require('hbs')
 var blogEngine = require('./blog');
 app.set('view engine', 'html');
-app.engine('html', hbs.__express);
 app.use(logfmt.requestLogger());
 app.use(bodyParser.urlencoded({
   extended: true

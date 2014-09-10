@@ -3,68 +3,18 @@ var logfmt = require("logfmt")
 var url = require('url')
 var map = require('through2-map')
 var querystring = require ('querystring')
-var bodyParser = require('body-parser')
-var mongoskin = require('mongoskin')
 var https = require('https');
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
 var mongoUri = process.env.MONGOLAB_URI || 
 	process.env.MONGOHQ_URL ||
 	'mongodb://localhost/pmc_db';
-
-var db = mongoskin.db(mongoUri, {safe:true})
-
-//app.use(express.static('public'));
-var blogEngine = require('./blog');
-app.set('view engine', 'html');
 app.use(logfmt.requestLogger());
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-
-app.param('collectionName', function(req, res, next, collectionName){
-  req.collection = db.collection(collectionName)
-  return next()
-})
-
-app.param('name', function(req, res, next, name) {
-  db.collection("pmc")
-  	.find({"name" : name}, {})
-  	.toArray(function(e, results){
-  		if (e) return next(e);
-//  		res.send(results)
-
-	for (i = 0; i < results.length; ++i) {
-		d = new Date(results[i].time_stamp*1000)
-		results[i].time_stamp = d;
-		console.log(d)
-    }
-
-	res.render('user_stats', 
-  		{title: "PMC for " + name,
-  		 "name": name,
-  	     entries: results});
-
-		return next();
-  	})
-})
 
 app.get('/', function(req, res) {
-  res.render('index', {title: "PMC charter"})
+  res.send('Hello fool!');
 });
 
-app.get('/collections/:collectionName', function(req, res, next) {
-  req.collection.find({} ,{limit:50, sort: [['_id',-1]]}).toArray(function(e, results){
-    if (e) return next(e)
-    res.send(results)
-  })
-})
-
-//app.get('/user/:name', function(req, res, next) {
-//})
-
-app.get('/user/:name', function(req, res, next) {
-});
 
 function get_pmc(user_name)
 {

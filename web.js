@@ -46,7 +46,7 @@ function store_pmc(user_name, time_stamp, pmc, notes)
 			'c' : pmc.slice(2,3),
 			'notes' : notes}, function(err, db) {
 				console.log("inserted " + pmc + " for " + user_name);
-				//PostToSlack(user_name + ' posted pmc: ' + pmc);
+				PostToSlack(user_name + ' posted pmc: ' + pmc);
 			});
 	});
 };

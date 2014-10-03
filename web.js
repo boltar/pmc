@@ -135,16 +135,16 @@ callback = function(response) {
     for (prop in w.query.pages) {
     	e = w.query.pages[prop].extract;
     	console.log(e)
-    	e.replace("<b>", "*");
-    	e.replace("</b>", "*");
-    	e.replace("<i>", "_");
-    	e.replace("</i>", "_");
-    	e.replace("<p>", "");
-    	e.replace("</p>", "");
-    	e.replace("<ul>", "");
-    	e.replace("</ul>", "");
-    	e.replace("<li>", "");
-    	e.replace("</li>", "");
+    	e = e.replace(/<b>/g, "*");
+    	e = e.replace(/<\/b>/g, "*");
+    	e = e.replace(/<i>/g, "_");
+    	e = e.replace(/<\/i>/g, "_");
+    	e = e.replace(/<p>/g, "");
+    	e = e.replace(/<\/p>/g, "");
+    	e = e.replace(/<ul>/g, "");
+    	e = e.replace(/<\/ul>/g, "");
+    	e = e.replace(/<li>/g, "");
+    	e = e.replace(/<\/li>/g, "");
     	PostToSlack(e, "Wiktor", ":wiktor:");
     }
   });

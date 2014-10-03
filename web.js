@@ -229,6 +229,6 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
   });
   console.log("POST data: " + post_data);
 
-  //post_req.write(post_data);
-  //post_req.end();
+  post_req.write(post_data);
+  post_req.end();
 }

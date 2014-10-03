@@ -15,8 +15,8 @@ app.get('/', function(req, res) {
   res.send('Hello fool!');
 });
 
-
-function get_pmc(user_name)
+/*
+function get_pmc(user_name, callback(pmc))
 {
 	var pmc;
 	MongoClient.connect(mongoUri, function (err, db) {
@@ -26,12 +26,12 @@ function get_pmc(user_name)
 		{
 			"name" : "boltar"
 		})
-
+		callback(pmc);
 		console.log("get_pmc:" + pmc);
 	});
 	return pmc;
 }
-
+*/
 function store_pmc(user_name, time_stamp, pmc, notes)
 {
 	// todo: connection manager
@@ -46,7 +46,7 @@ function store_pmc(user_name, time_stamp, pmc, notes)
 			'c' : pmc.slice(2,3),
 			'notes' : notes}, function(err, db) {
 				console.log("inserted " + pmc + " for " + user_name);
-				PostToSlack(user_name + ' posted pmc: ' + pmc);
+				PostToSlack(user_name + ' posted pmc: ' + pmc, "pmcbot", ":pmcbot:");
 			});
 	});
 };
@@ -92,25 +92,101 @@ app.post('/pmc', function(req, res) {
 		}
 	})).pipe(res)
 })
+/*
+app.post('/getpmc', function(req, res) {
+	req.pipe(map(function (chunk) {
+		parsed = querystring.parse(chunk.toString())
+		console.log(parsed)
+		user_name = parsed['user_name'];
+		text = parsed['text'];
+		timestamp = parsed['timestamp'];
+		date = new Date(parseInt(parsed['timestamp']) * 1000)
 
-// app.post('/getpmc', function(req, res) {
-// 	req.pipe(map(function (chunk) {
-// 		parsed = querystring.parse(chunk.toString())
-// 		console.log(parsed)
-// 		user_name = parsed['user_name'];
-// 		text = parsed['text'];
-// 		timestamp = parsed['timestamp'];
-// 		date = new Date(parseInt(parsed['timestamp']) * 1000)
+		console.log('user ' + user_name + ' said ' 
+			+ text + ' at ' + date.toString());
 
-// 		console.log('user ' + user_name + ' said ' 
-// 			+ text + ' at ' + date.toString());
+		pmc = get_pmc(user_name); //<<--- this is non-blocking!
+		console.log('pmc:' + pmc);
 
-// 		pmc = get_pmc(user_name); //<<--- this is non-blocking!
-// 		console.log('pmc:' + pmc);
+		PostToSlack(pmc);
+	})).pipe(res)
+})
+*/
 
-// 		PostToSlack(pmc);
-// 	})).pipe(res)
-// })
+/// wiki stuff
+var options = {
+	host: 'en.wikipedia.org',
+	path:'/w/api.php?action=query&prop=extracts&format=json&exintro=&titles='
+};
+
+callback = function(response) {
+  var str = '';
+
+  //another chunk of data has been recieved, so append it to `str`
+  response.on('data', function (chunk) {
+    str += chunk;
+  });
+
+  //the whole response has been recieved, so we just print it out here
+  response.on('end', function () {
+    console.log(str);
+    console.log('-----');
+    w = JSON.parse(str);
+    for (prop in w.query.pages) {
+    	e = w.query.pages[prop].extract;
+    	console.log(e)
+    	e.replace("<b>", "*");
+    	e.replace("</b>", "*");
+    	e.replace("<i>", "_");
+    	e.replace("</i>", "_");
+    	e.replace("<p>", "");
+    	e.replace("</p>", "");
+    	e.replace("<ul>", "");
+    	e.replace("</ul>", "");
+    	e.replace("<li>", "");
+    	e.replace("</li>", "");
+    	PostToSlack(e, "Wiktor", ":wiktor:");
+    }
+  });
+}
+//https.request(options, callback).end(); 
+/*
+var htmlparser = require("htmlparser2");
+var parser = new htmlparser.Parser({
+    onopentag: function(name, attribs){
+        if(name === "b"){
+            return 
+        }
+    },
+    ontext: function(text){
+        console.log("-->", text);
+    },
+    onclosetag: function(tagname){
+        if(tagname === "script"){
+            console.log("That's it?!");
+        }
+    }
+});
+//parser.write("Xyz <script type='text/javascript'>var foo = '<<bar>>';</ script>");
+//parser.end();
+*/
+app.post('/wiktor', function(req, res) {
+	req.pipe(map(function (chunk) {
+		parsed = querystring.parse(chunk.toString())
+		console.log(parsed)
+		user_name = parsed['user_name'];
+		text = parsed['text'];
+		timestamp = parsed['timestamp'];
+		date = new Date(parseInt(parsed['timestamp']) * 1000)
+
+		console.log('user ' + user_name + ' said ' 
+			+ text + ' at ' + date.toString());
+
+		options.path += text.slice(6, text.length)
+		https.request(options, callback).end();
+	})).pipe(res)
+})
+// end wiki stuff
 
 var port = Number(process.env.PORT || 5000);
 app.listen(port, function() {
@@ -119,13 +195,13 @@ app.listen(port, function() {
 });
 
 
-function PostToSlack(post_text) {
+function PostToSlack(post_text, bot_name, bot_emoji) {
   // Build the post string from an object
 
   post_data = JSON.stringify(
   	{"text" : post_text, 
-  	 "username" : "pmcbot",
-  	 "icon_emoji" : ":pmcbot:"
+  	 "username" : bot_name,
+  	 "icon_emoji" : bot_emoji
   	})
 
   
@@ -135,7 +211,8 @@ function PostToSlack(post_text) {
   var post_options = {
       host: 'poundc.slack.com',
       port: '443',
-      path: '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh',
+      path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#testing
+      //path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#legible
       method: 'POST',
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -152,6 +229,6 @@ function PostToSlack(post_text) {
   });
   console.log("POST data: " + post_data);
 
-  post_req.write(post_data);
-  post_req.end();
+  //post_req.write(post_data);
+  //post_req.end();
 }

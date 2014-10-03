@@ -150,7 +150,7 @@ callback = function(response) {
     		e = e.replace(/<li>/g, "");
     		e = e.replace(/<\/li>/g, "");
     	}
-    	PostToSlack(e, "", ":wiktor:");
+    	PostToSlack(e, "--", ":wiktor:");
     }
   });
 }

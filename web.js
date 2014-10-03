@@ -116,8 +116,10 @@ app.post('/getpmc', function(req, res) {
 /// wiki stuff
 var options = {
 	host: 'en.wikipedia.org',
-	path:'/w/api.php?action=query&prop=extracts&format=json&exintro=&titles='
+	path: ''
 };
+
+var path_const = '/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=';
 
 callback = function(response) {
   var str = '';
@@ -133,19 +135,22 @@ callback = function(response) {
     console.log('-----');
     w = JSON.parse(str);
     for (prop in w.query.pages) {
+    	options.path = '';
     	e = w.query.pages[prop].extract;
     	console.log(e)
-    	e = e.replace(/<b>/g, "*");
-    	e = e.replace(/<\/b>/g, "*");
-    	e = e.replace(/<i>/g, "_");
-    	e = e.replace(/<\/i>/g, "_");
-    	e = e.replace(/<p>/g, "");
-    	e = e.replace(/<\/p>/g, "");
-    	e = e.replace(/<ul>/g, "");
-    	e = e.replace(/<\/ul>/g, "");
-    	e = e.replace(/<li>/g, "");
-    	e = e.replace(/<\/li>/g, "");
-    	PostToSlack(e, "Wiktor", ":wiktor:");
+    	if (e) {
+	    	e = e.replace(/<b>/g, "*");
+    		e = e.replace(/<\/b>/g, "*");
+    		e = e.replace(/<i>/g, "_");
+    		e = e.replace(/<\/i>/g, "_");
+    		e = e.replace(/<p>/g, "");
+    		e = e.replace(/<\/p>/g, "");
+    		e = e.replace(/<ul>/g, "");
+    		e = e.replace(/<\/ul>/g, "");
+    		e = e.replace(/<li>/g, "");
+    		e = e.replace(/<\/li>/g, "");
+    	}
+    	PostToSlack(e, "", ":wiktor:");
     }
   });
 }
@@ -182,7 +187,7 @@ app.post('/wiktor', function(req, res) {
 		console.log('user ' + user_name + ' said ' 
 			+ text + ' at ' + date.toString());
 
-		options.path += text.slice(6, text.length)
+		options.path = path_const + text.slice(6, text.length)
 		https.request(options, callback).end();
 	})).pipe(res)
 })

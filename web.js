@@ -10,7 +10,7 @@ var mongoUri = process.env.MONGOLAB_URI ||
 	process.env.MONGOHQ_URL ||
 	'mongodb://localhost/pmc_db';
 app.use(logfmt.requestLogger());
-var iconv = require('iconv'); 
+//var iconv = require('iconv'); 
 
 app.get('/', function(req, res) {
   res.send('Hello fool!');
@@ -141,9 +141,7 @@ callback = function(response) {
   response.on('end', function () {
     console.log(str);
     console.log('-----');
-    var ic = new iconv.Iconv('utf-8', 'utf-8')
-    console.log(str);
-    console.log('-----');
+    //var ic = new iconv.Iconv('utf-8', 'utf-8')
     w = JSON.parse(str);
     for (prop in w.query.pages) {
     	options.path = '';

@@ -119,7 +119,12 @@ var options = {
 	path: ''
 };
 
-var path_const = '/w/api.php?action=query&prop=extracts&format=json&exintro=&titles=';
+var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
+	'&redirects&explaintext&exintro&titles=';
+
+function encode_utf8(s) {
+  return unescape(encodeURIComponent(s));
+}
 
 callback = function(response) {
   var str = '';
@@ -129,8 +134,13 @@ callback = function(response) {
     str += chunk;
   });
 
-  //the whole response has been recieved, so we just print it out here
+
+
+  //the whole response has been received, so we just print it out here
   response.on('end', function () {
+    console.log(str);
+    console.log('-----');
+    str = encode_utf8(str);
     console.log(str);
     console.log('-----');
     w = JSON.parse(str);
@@ -138,18 +148,18 @@ callback = function(response) {
     	options.path = '';
     	e = w.query.pages[prop].extract;
     	console.log(e)
-    	if (e) {
-	    	e = e.replace(/<b>/g, "*");
-    		e = e.replace(/<\/b>/g, "*");
-    		e = e.replace(/<i>/g, "_");
-    		e = e.replace(/<\/i>/g, "_");
-    		e = e.replace(/<p>/g, "");
-    		e = e.replace(/<\/p>/g, "");
-    		e = e.replace(/<ul>/g, "");
-    		e = e.replace(/<\/ul>/g, "");
-    		e = e.replace(/<li>/g, "");
-    		e = e.replace(/<\/li>/g, "");
-    	}
+    	// if (e) {
+	    // 	e = e.replace(/<b>/g, "*");
+    	// 	e = e.replace(/<\/b>/g, "*");
+    	// 	e = e.replace(/<i>/g, "_");
+    	// 	e = e.replace(/<\/i>/g, "_");
+    	// 	e = e.replace(/<p>/g, "");
+    	// 	e = e.replace(/<\/p>/g, "");
+    	// 	e = e.replace(/<ul>/g, "");
+    	// 	e = e.replace(/<\/ul>/g, "");
+    	// 	e = e.replace(/<li>/g, "");
+    	// 	e = e.replace(/<\/li>/g, "");
+    	// }
     	PostToSlack(e, "--", ":wiktor:");
     }
   });
@@ -216,8 +226,8 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
   var post_options = {
       host: 'poundc.slack.com',
       port: '443',
-      path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#testing
-      //path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#legible
+      //path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#legible
+      path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#testing
       method: 'POST',
       headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

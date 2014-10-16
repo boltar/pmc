@@ -1,0 +1,14 @@
+9-8-2014
+
+get_pmc isn't blocking so we're posting null...
+
+pmc = get_pmc(user_name); //<<--- this is non-blocking!
+
+10-1-2014
+do wiki stuff
+
+10-15-2014
+figure out encoding
+AE
+!wiki shot glass 
+is also giving me trouble

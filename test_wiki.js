@@ -15,7 +15,7 @@ var post_data = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!wiki Sound_Garden' 
+      'text' : '!wiki shot glass' 
   });
 
 var req = http.request(options, function(res) {

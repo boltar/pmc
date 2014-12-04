@@ -86,8 +86,20 @@ var options = {
 var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
 	'&redirects&explaintext&exintro&titles=';
 
+function toTitleCase(str)
+{
+    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+
 function encode_utf8(s) {
   return unescape(encodeURIComponent(s));
+}
+
+if (typeof String.prototype.startsWith != 'function') {
+  // see below for better implementation!
+  String.prototype.startsWith = function (str){
+    return this.indexOf(str) == 0;
+  };
 }
 
 wiktor_cb = function(response) {
@@ -129,7 +141,17 @@ app.post('/wiktor', function(req, res) {
 		console.log('user ' + user_name + ' said ' 
 			+ text + ' at ' + date.toString());
 
-		options.path = path_const + text.slice(6, text.length)
+		if (text.startsWith('!wiki ')){
+			wiki_entry = text.slice('!wiki '.length, text.length);	
+		} else if (text.startsWith('teh x is ')) 
+		{
+			wiki_entry = text.slice('teh x is '.length, text.length);	
+		}
+		
+		wiki_entry = toTitleCase(wiki_entry);
+		wiki_entry = wiki_entry.replace(/ /g, '_');
+		console.log('wiki_entry: ' + wiki_entry);
+		options.path = path_const + wiki_entry;
 		https.request(options, wiktor_cb).end();
 	})).pipe(res)
 })
@@ -160,8 +182,8 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
   var post_options = {
       host: 'poundc.slack.com',
       port: '443',
-      path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#legible
-      //path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#testing
+      //path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#legible
+      path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#testing
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',

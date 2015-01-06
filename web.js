@@ -188,8 +188,8 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
   var post_options = {
       host: 'poundc.slack.com',
       port: '443',
-      //path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#legible
-      path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#testing
+      path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#legible
+      //path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#testing
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',

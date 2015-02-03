@@ -194,6 +194,9 @@ urbandic_cb = function(response) {
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     w = JSON.parse(str);
+    w.list.sort(function(a, b) {
+    	return a.thumbs_up < b.thumbs_up;
+    })
     for (entry_idx in w.list) {
     	e = w.list[entry_idx].definition;
     	//e = utf8.encode(e);
@@ -209,6 +212,8 @@ urbandic_cb = function(response) {
     	{
     		PostToSlack("Query failed", "--", ":urbot:");
     	}
+    	if (entry_idx == 2)
+    		break;
     }
     urbandic_options.path = '';
   });

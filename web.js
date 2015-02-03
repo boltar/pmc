@@ -11,6 +11,10 @@ var mongoUri = process.env.MONGOLAB_URI ||
 	'mongodb://localhost/pmc_db';
 app.use(logfmt.requestLogger());
 var utf8 = require('utf8');
+//var urban = require('urban')
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+
 
 app.get('/', function(req, res) {
   res.send('Hello fool!');
@@ -135,6 +139,8 @@ wiktor_cb = function(response) {
   });
 }
 
+
+
 app.post('/wiktor', function(req, res) {
 	req.pipe(map(function (chunk) {
 		parsed = querystring.parse(chunk.toString())
@@ -163,6 +169,77 @@ app.post('/wiktor', function(req, res) {
 })
 // end wiki stuff
 
+
+// URBAN DICTIONARY STUFF 
+//http://api.urbandictionary.com/v0/define?term=kvlt
+var urbandic_options = {
+	host: 'api.urbandictionary.com',
+	path: ''
+};
+
+var urbandic_path_const = '/v0/define?term=';
+
+urbandic_cb = function(response) {
+  var str = '';
+
+  response.setEncoding('')
+  //another chunk of data has been recieved, so append it to `str`
+  response.on('data', function (chunk) {
+    str += chunk;
+  });
+
+  //the whole response has been received, so we just print it out here
+  response.on('end', function () {
+    console.log('urbandic_cb: ' + str);
+    console.log('-1-');
+    //var ic = new iconv.Iconv('utf-8', 'utf-8')
+    w = JSON.parse(str);
+    for (entry_idx in w.list) {
+    	e = w.list[entry_idx].definition;
+    	//e = utf8.encode(e);
+    	if (typeof e != 'undefined')
+    	{
+    		console.log('urbandic_cb: ' + e);
+    		console.log('-2-');
+    		
+    		PostToSlack(e + " :thumbsup: " + w.list[entry_idx].thumbs_up + 
+    			"  :thumbsdown: " + w.list[entry_idx].thumbs_down, "---", ":urbot:");
+    	} 
+    	else
+    	{
+    		PostToSlack("Query failed", "--", ":urbot:");
+    	}
+    }
+    urbandic_options.path = '';
+  });
+}
+
+
+app.post('/urbandic', function(req, res) {
+	req.pipe(map(function (chunk) {
+		parsed = querystring.parse(chunk.toString())
+		console.log('app.post(/urbandic): ' + parsed)
+		user_name = parsed['user_name'];
+		text = parsed['text'];
+		timestamp = parsed['timestamp'];
+		date = new Date(parseInt(parsed['timestamp']) * 1000)
+
+		console.log('user ' + user_name + ' said ' 
+			+ text + ' at ' + date.toString());
+
+		if (text.startsWith('!urban ')){
+			urban_entry = text.slice('!urban '.length, text.length);	
+		}
+		
+		//urban_entry = toTitleCase(wiki_entry);
+		//urban_entry = wiki_entry.replace(/ /g, '_');
+		console.log('urban_entry: ' + urban_entry);
+		urbandic_options.path = urbandic_path_const + urban_entry;
+		https.request(urbandic_options, urbandic_cb).end();
+	})).pipe(res)
+})
+
+
 var port = Number(process.env.PORT || 5000);
 app.listen(port, function() {
   console.log("Listening on " + port);
@@ -185,11 +262,16 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
   console.log(post_text)
 
   // An object of options to indicate where to post to
+  if (typeof process.env.MONGOLAB_URI == 'undefined') {
+  	// running locally via foreman
+  	path_str = '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh'; //#testing
+  } else {
+  	path_str = '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA'; //#legible
+  }
   var post_options = {
       host: 'poundc.slack.com',
       port: '443',
-      path: '/services/hooks/incoming-webhook?token=mcmbhcqQpfoU2THsofvad3VA', //#legible
-      //path:   '/services/hooks/incoming-webhook?token=w0kPrJC0eVqAAnYz7h15yaEh', //#testing
+      path: path_str,
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',

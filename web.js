@@ -194,27 +194,42 @@ urbandic_cb = function(response) {
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     w = JSON.parse(str);
-    w.list.sort(function(a, b) {
-    	return a.thumbs_up < b.thumbs_up;
+
+    var sortedList = w.list.slice();
+    sortedList.sort(function(a, b) {
+    	console.log("a:" + a.thumbs_up + ", b: " + b.thumbs_up)
+    	return b.thumbs_up - a.thumbs_up;
     })
-    for (entry_idx in w.list) {
-    	e = w.list[entry_idx].definition;
+    
+
+    var posted = 0;
+    var postStr = "";
+    for (entry_idx in sortedList) {
+    	e = sortedList[entry_idx].definition;
     	//e = utf8.encode(e);
     	if (typeof e != 'undefined')
     	{
     		console.log('urbandic_cb: ' + e);
     		console.log('-2-');
-    		
-    		PostToSlack(e + " :thumbsup: " + w.list[entry_idx].thumbs_up + 
-    			"  :thumbsdown: " + w.list[entry_idx].thumbs_down, "---", ":urbot:");
+    		if (sortedList[entry_idx].thumbs_up > sortedList[entry_idx].thumbs_down)
+    		{
+    			//PostToSlack(e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
+    			//"  :thumbsdown: " + sortedList[entry_idx].thumbs_down, "---", ":urbot:");
+    			posted++;
+      			postStr += "(" + posted + "): " + e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
+    			"  :thumbsdown: " + sortedList[entry_idx].thumbs_down + "\n";
+
+    		}
     	} 
     	else
     	{
     		PostToSlack("Query failed", "--", ":urbot:");
     	}
-    	if (entry_idx == 2)
+    	if (posted > 2)
     		break;
     }
+    PostToSlack(postStr, "--", ":urbot:");
+
     urbandic_options.path = '';
   });
 }
@@ -237,7 +252,7 @@ app.post('/urbandic', function(req, res) {
 		}
 		
 		//urban_entry = toTitleCase(wiki_entry);
-		//urban_entry = wiki_entry.replace(/ /g, '_');
+		urban_entry = urban_entry.replace(/ /g, '%20');
 		console.log('urban_entry: ' + urban_entry);
 		urbandic_options.path = urbandic_path_const + urban_entry;
 		https.request(urbandic_options, urbandic_cb).end();

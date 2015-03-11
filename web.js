@@ -87,6 +87,7 @@ var options = {
 	path: ''
 };
 
+//http://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=
 var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
 	'&redirects&explaintext&exintro&titles=';
 
@@ -123,6 +124,7 @@ wiktor_cb = function(response) {
     w = JSON.parse(str);
     for (prop in w.query.pages) {
     	e = w.query.pages[prop].extract;
+      e += "  http://en.wikipedia.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
     	//e = utf8.encode(e);
     	if (typeof e != 'undefined')
     	{
@@ -160,7 +162,7 @@ app.post('/wiktor', function(req, res) {
 			wiki_entry = text.slice('teh x is '.length, text.length);	
 		}
 		
-		wiki_entry = toTitleCase(wiki_entry);
+		//wiki_entry = toTitleCase(wiki_entry);
 		wiki_entry = wiki_entry.replace(/ /g, '_');
 		console.log('wiki_entry: ' + wiki_entry);
 		options.path = path_const + wiki_entry;

@@ -230,6 +230,10 @@ urbandic_cb = function(response) {
     	if (posted > 2)
     		break;
     }
+    if (posted == 0)
+    {
+      PostToSlack("Query failed", "--", ":urbot:")
+    }
     PostToSlack(postStr, "--", ":urbot:");
 
     urbandic_options.path = '';

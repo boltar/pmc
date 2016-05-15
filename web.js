@@ -205,7 +205,9 @@ urbandic_cb = function(response) {
     
 
     var posted = 0;
-    var postStr = "";
+    var postStr = ""
+    var def_emojis = [":zero:", ":one:", ":two:", ":three:"]
+
     for (entry_idx in sortedList) {
     	e = sortedList[entry_idx].definition;
     	//e = utf8.encode(e);
@@ -218,7 +220,7 @@ urbandic_cb = function(response) {
     			//PostToSlack(e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
     			//"  :thumbsdown: " + sortedList[entry_idx].thumbs_down, "---", ":urbot:");
     			posted++;
-      			postStr += "(" + posted + "): " + e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
+      			postStr += def_emojis[posted] + " " + e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
     			"  :thumbsdown: " + sortedList[entry_idx].thumbs_down + "\n";
 
     		}
@@ -258,6 +260,7 @@ app.post('/urbandic', function(req, res) {
 		}
 		
 		//urban_entry = toTitleCase(wiki_entry);
+    urban_entry = escape(urban_entry)
 		urban_entry = urban_entry.replace(/ /g, '%20');
 		console.log('urban_entry: ' + urban_entry);
 		urbandic_options.path = urbandic_path_const + urban_entry;

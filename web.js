@@ -121,6 +121,17 @@ wiktor_cb = function(response) {
     console.log('wiktor_cb: ' + str);
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
+    var w;
+    try {
+    	w = JSON.parse(str);
+    }
+    catch (err) {
+    	console.log("Error parsing JSON string: " + str)
+    	PostToSlack("Wiki error: " + str, "--", ":urbot:");
+    	options.path = '';    	
+    	return
+    }
+        
     w = JSON.parse(str);
     for (prop in w.query.pages) {
     	e = w.query.pages[prop].extract;
@@ -194,8 +205,20 @@ urbandic_cb = function(response) {
   response.on('end', function () {
     console.log('urbandic_cb: ' + str);
     console.log('-1-');
+    var w;
+    
+    try {
+    	w = JSON.parse(str);
+    }
+    catch (err) {
+    	console.log("Error parsing JSON string: " + str)
+    	PostToSlack("Urban error: " + str, "--", ":urbot:");
+    	urbandic_options.path = '';    	
+    	return
+    }
+    
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
-    w = JSON.parse(str);
+    //w = JSON.parse(str);
 
     var sortedList = w.list.slice();
     sortedList.sort(function(a, b) {

@@ -157,7 +157,7 @@ wiktor_cb = function(response) {
 app.post('/wiktor', function(req, res) {
 	req.pipe(map(function (chunk) {
 		parsed = querystring.parse(chunk.toString())
-		console.log('app.post(/wiktor): ' + parsed)
+//		console.log('app.post(/wiktor): ' + parsed)
 		user_name = parsed['user_name'];
 		text = parsed['text'];
 		timestamp = parsed['timestamp'];
@@ -269,7 +269,7 @@ urbandic_cb = function(response) {
 app.post('/urbandic', function(req, res) {
 	req.pipe(map(function (chunk) {
 		parsed = querystring.parse(chunk.toString())
-		console.log('app.post(/urbandic): ' + parsed)
+//		console.log('app.post(/urbandic): ' + parsed)
 		user_name = parsed['user_name'];
 		text = parsed['text'];
 		timestamp = parsed['timestamp'];

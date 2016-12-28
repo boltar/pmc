@@ -135,7 +135,7 @@ wiktor_cb = function(response) {
     w = JSON.parse(str);
     for (prop in w.query.pages) {
     	e = w.query.pages[prop].extract;
-      e += "  http://en.wikipedia.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
+      e += "  https://en.wikipedia.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
     	//e = utf8.encode(e);
     	if (typeof e != 'undefined')
     	{

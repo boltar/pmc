@@ -182,6 +182,106 @@ app.post('/wiktor', function(req, res) {
 })
 // end wiki stuff
 
+/// wiktionary stuff
+var options = {
+  host: 'en.wiktionary.org',
+  path: ''
+};
+
+//http://en.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=
+var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
+  '&redirects&explaintext&titles=';
+
+function toTitleCase(str)
+{
+    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+
+function encode_utf8(s) {
+  return unescape(encodeURIComponent(s));
+}
+
+if (typeof String.prototype.startsWith != 'function') {
+  // see below for better implementation!
+  String.prototype.startsWith = function (str){
+    return this.indexOf(str) == 0;
+  };
+}
+
+wiktionary_cb = function(response) {
+  var str = '';
+  //remove all strings after "==== Translations ===="
+  const translationsMarker = "==== Translations ===="
+
+  response.setEncoding('')
+  //another chunk of data has been recieved, so append it to `str`
+  response.on('data', function (chunk) {
+    str += chunk;
+  });
+
+  //the whole response has been received, so we just print it out here
+  response.on('end', function () {
+    console.log('wiktionary_cb: ' + str);
+    console.log('-1-');
+    //var ic = new iconv.Iconv('utf-8', 'utf-8')
+    var w;
+    try {
+      w = JSON.parse(str);
+    }
+    catch (err) {
+      console.log("Error parsing JSON string: " + str)
+      PostToSlack("Wiktionary error: " + str, "--", ":urbot:");
+      options.path = '';      
+      return
+    }
+        
+    w = JSON.parse(str);
+    for (prop in w.query.pages) {
+      e = w.query.pages[prop].extract;
+      e = e.substring(0, e.indexOf(translationsMarker))
+      e += "  http://en.wiktionary.org/" + w.query.pages[prop].title.replace(/ /g, '_');
+      //e = utf8.encode(e);
+      if (typeof e != 'undefined')
+      {
+        console.log('wiktionary_cb: ' + e);
+        console.log('-2-');
+        PostToSlack(e, "--", ":wiktionary:");
+      } 
+      else
+      {
+        PostToSlack("Query failed", "--", ":wiktionary:");
+      }
+    }
+    options.path = '';
+  });
+}
+
+
+
+app.post('/wiktionary', function(req, res) {
+  req.pipe(map(function (chunk) {
+    parsed = querystring.parse(chunk.toString())
+//    console.log('app.post(/wiktor): ' + parsed)
+    user_name = parsed['user_name'];
+    text = parsed['text'];
+    timestamp = parsed['timestamp'];
+    date = new Date(parseInt(parsed['timestamp']) * 1000)
+
+    console.log('user ' + user_name + ' said ' 
+      + text + ' at ' + date.toString());
+
+    if (text.startsWith('!wikt ')){
+      wikt_entry = text.slice('!wikt '.length, text.length);  
+    } 
+    
+    //wiki_entry = toTitleCase(wiki_entry);
+    wikt_entry = wikt_entry.replace(/ /g, '_');
+    console.log('wikt_entry: ' + wikt_entry);
+    options.path = path_const + wikt_entry;
+    https.request(options, wiktionary_cb).end();
+  })).pipe(res)
+})
+// end wiktionary stuff
 
 // URBAN DICTIONARY STUFF 
 //http://api.urbandictionary.com/v0/define?term=kvlt

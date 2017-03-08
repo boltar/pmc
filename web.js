@@ -183,7 +183,7 @@ app.post('/wiktor', function(req, res) {
 // end wiki stuff
 
 /// wiktionary stuff
-var options = {
+var options_wikt = {
   host: 'en.wiktionary.org',
   path: ''
 };
@@ -231,7 +231,7 @@ wiktionary_cb = function(response) {
     catch (err) {
       console.log("Error parsing JSON string: " + str)
       PostToSlack("Wiktionary error: " + str, "--", ":urbot:");
-      options.path = '';      
+      options_wikt.path = '';      
       return
     }
         
@@ -257,7 +257,7 @@ wiktionary_cb = function(response) {
         PostToSlack("Query failed", "--", ":wiktionary:");
       }
     }
-    options.path = '';
+    options_wikt.path = '';
   });
 }
 
@@ -282,8 +282,8 @@ app.post('/wiktionary', function(req, res) {
     //wiki_entry = toTitleCase(wiki_entry);
     wikt_entry = wikt_entry.replace(/ /g, '_');
     console.log('wikt_entry: ' + wikt_entry);
-    options.path = path_const + wikt_entry;
-    https.request(options, wiktionary_cb).end();
+    options_wikt.path = path_const + wikt_entry;
+    https.request(options_wikt, wiktionary_cb).end();
   })).pipe(res)
 })
 // end wiktionary stuff

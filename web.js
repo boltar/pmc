@@ -87,9 +87,9 @@ var options = {
 	path: ''
 };
 
-//http://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=
 var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
 	'&redirects&explaintext&exintro&titles=';
+//https://en.wiktionary.org/w/api.php?format=json&action=query&rvprop=content&prop=extracts&redirects=1&explaintext&titles=Godspeed
 
 function toTitleCase(str)
 {
@@ -189,7 +189,7 @@ var options_wikt = {
 };
 
 //http://en.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=
-var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
+var wikt_path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
   '&redirects&explaintext&titles=';
 
 function toTitleCase(str)
@@ -208,10 +208,30 @@ if (typeof String.prototype.startsWith != 'function') {
   };
 }
 
-wiktionary_cb = function(response) {
+
+const anysection_rege = /(={3,} .*? ={3,})/g;
+const ety_section = /=== Etymology (\d )?===/
+const pro_section = /=== Pronunciation (\d )?===/
+
+
+function find_wikt_section(heading, str)
+{
+  arr = str.split(anysection_rege);
+  var result = [];
+  // does the heading exist?
+  for (s of arr) {
+      
+    if (heading.exec(s))  
+    {
+      result.push(arr[arr.indexOf(s)+1])
+    }
+  }
+  return result;
+
+}
+
+wiktionary_cb_ety = function(response) {
   var str = '';
-  //remove all strings after "==== Translations ===="
-  const translationsMarker = "==== Translations ===="
 
   response.setEncoding('')
   //another chunk of data has been recieved, so append it to `str`
@@ -238,16 +258,69 @@ wiktionary_cb = function(response) {
     w = JSON.parse(str);
     for (prop in w.query.pages) {
       e = w.query.pages[prop].extract;
-      translationsLoc = e.indexOf(translationsMarker)
-      if (translationsLoc > 0)
-      {
-        e = e.substring(0, e.indexOf(translationsMarker))  
-      }
+      // translationsLoc = e.indexOf(translationsMarker)
+      // if (translationsLoc > 0)
+      // {
+      //   e = e.substring(0, e.indexOf(translationsMarker))  
+      // }
+      e = find_wikt_section(ety_section, e)
       
-      e += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
       //e = utf8.encode(e);
       if (typeof e != 'undefined')
       {
+        e += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
+        console.log('wiktionary_cb: ' + e);
+        console.log('-2-');
+        PostToSlack(e, "--", ":wiktionary:");
+      } 
+      else
+      {
+        PostToSlack("Query failed", "--", ":wiktionary:");
+      }
+    }
+    options_wikt.path = '';
+  });
+}
+
+wiktionary_cb_pro = function(response) {
+  var str = '';
+
+  response.setEncoding('')
+  //another chunk of data has been recieved, so append it to `str`
+  response.on('data', function (chunk) {
+    str += chunk;
+  });
+
+  //the whole response has been received, so we just print it out here
+  response.on('end', function () {
+    console.log('wiktionary_cb: ' + str);
+    console.log('-1-');
+    //var ic = new iconv.Iconv('utf-8', 'utf-8')
+    var w;
+    try {
+      w = JSON.parse(str);
+    }
+    catch (err) {
+      console.log("Error parsing JSON string: " + str)
+      PostToSlack("Wiktionary error: " + str, "--", ":wiktionary:");
+      options_wikt.path = '';      
+      return
+    }
+        
+    w = JSON.parse(str);
+    for (prop in w.query.pages) {
+      e = w.query.pages[prop].extract;
+      // translationsLoc = e.indexOf(translationsMarker)
+      // if (translationsLoc > 0)
+      // {
+      //   e = e.substring(0, e.indexOf(translationsMarker))  
+      // }
+      e = find_wikt_section(pro_section, e)
+      
+      //e = utf8.encode(e);
+      if (typeof e != 'undefined')
+      {
+        e += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
         console.log('wiktionary_cb: ' + e);
         console.log('-2-');
         PostToSlack(e, "--", ":wiktionary:");
@@ -275,15 +348,36 @@ app.post('/wiktionary', function(req, res) {
     console.log('user ' + user_name + ' said ' 
       + text + ' at ' + date.toString());
 
-    if (text.startsWith('!wikt ')){
-      wikt_entry = text.slice('!wikt '.length, text.length);  
+    opt_ety = 0; opt_pro = 0;
+
+    if (text.startsWith('!wikt -e')){
+      wikt_entry = text.slice('!wikt -e'.length, text.length);  
+      opt_ety = 1;
+      opt_pro = 0;
     } 
+    else if (text.startsWith('!wikt -p'))
+    {
+      wikt_entry = text.slice('!wikt -p'.length, text.length);  
+      opt_ety = 0;
+      opt_pro = 1;
+    }
+    else if (text.startsWith('!wikt ')){
+      return;
+      //wikt_entry = text.slice('!wikt '.length, text.length);  
+    }
     
     //wiki_entry = toTitleCase(wiki_entry);
     wikt_entry = wikt_entry.replace(/ /g, '_');
     console.log('wikt_entry: ' + wikt_entry);
-    options_wikt.path = path_const + wikt_entry;
-    https.request(options_wikt, wiktionary_cb).end();
+    options_wikt.path = wikt_path_const + wikt_entry;
+    if (opt_ety) {
+      https.request(options_wikt, wiktionary_cb_ety).end();  
+    }
+    else if (opt_pro) {
+      https.request(options_wikt, wiktionary_cb_pro).end();   
+    }
+
+    
   })).pipe(res)
 })
 // end wiktionary stuff

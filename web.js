@@ -6,7 +6,7 @@ var querystring = require ('querystring')
 var https = require('https');
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
-var mongoUri = process.env.MONGOLAB_URI || 
+var mongoUri = process.env.MONGOLAB_URI ||
 	process.env.MONGOHQ_URL ||
 	'mongodb://localhost/pmc_db';
 app.use(logfmt.requestLogger());
@@ -26,7 +26,7 @@ function store_pmc(user_name, time_stamp, pmc, notes)
 	MongoClient.connect(mongoUri, function (err, db) {
 		if (err) {console.log("error connecting to db"); return console.dir(err);};
 		var collection = db.collection('pmc');
-		collection.insert( 
+		collection.insert(
 			{'time_stamp' : time_stamp,
 			'name': user_name,
 			'p' : pmc.slice(0,1),
@@ -64,14 +64,14 @@ app.post('/pmc', function(req, res) {
 		timestamp = parsed['timestamp'];
 		date = new Date(parseInt(parsed['timestamp']) * 1000)
 
-		console.log('user ' + user_name + ' said ' 
+		console.log('user ' + user_name + ' said '
 			+ text + ' at ' + date.toString());
 
 		if (text.slice(4,8) === 'undo') {
 			undo_pmc(user_name);
 		} else if (/[0-9xX]{3}/.exec(text.slice(4,7)) != null) {
 			store_pmc(user_name,
-				timestamp, 
+				timestamp,
 				text.slice(4,7), // pmc
 				text.slice(8, text.length));
 			return chunk.toString()
@@ -87,7 +87,7 @@ var options = {
 	path: ''
 };
 
-var path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
+var path_const = '/w/api.php?action=query&prop=extracts&format=json' +
 	'&redirects&explaintext&exintro&titles=';
 //https://en.wiktionary.org/w/api.php?format=json&action=query&rvprop=content&prop=extracts&redirects=1&explaintext&titles=Godspeed
 
@@ -128,10 +128,10 @@ wiktor_cb = function(response) {
     catch (err) {
     	console.log("Error parsing JSON string: " + str)
     	PostToSlack("Wiki error: " + str, "--", ":urbot:");
-    	options.path = '';    	
+    	options.path = '';
     	return
     }
-        
+
     w = JSON.parse(str);
     for (prop in w.query.pages) {
     	e = w.query.pages[prop].extract;
@@ -142,7 +142,7 @@ wiktor_cb = function(response) {
     		console.log('wiktor_cb: ' + e);
     		console.log('-2-');
     		PostToSlack(e, "--", ":wiktor:");
-    	} 
+    	}
     	else
     	{
     		PostToSlack("Query failed", "--", ":wiktor:");
@@ -163,16 +163,16 @@ app.post('/wiktor', function(req, res) {
 		timestamp = parsed['timestamp'];
 		date = new Date(parseInt(parsed['timestamp']) * 1000)
 
-		console.log('user ' + user_name + ' said ' 
+		console.log('user ' + user_name + ' said '
 			+ text + ' at ' + date.toString());
 
 		if (text.startsWith('!wiki ')){
-			wiki_entry = text.slice('!wiki '.length, text.length);	
-		} else if (text.startsWith('teh x is ')) 
+			wiki_entry = text.slice('!wiki '.length, text.length);
+		} else if (text.startsWith('teh x is '))
 		{
-			wiki_entry = text.slice('teh x is '.length, text.length);	
+			wiki_entry = text.slice('teh x is '.length, text.length);
 		}
-		
+
 		//wiki_entry = toTitleCase(wiki_entry);
 		wiki_entry = wiki_entry.replace(/ /g, '_');
 		console.log('wiki_entry: ' + wiki_entry);
@@ -189,7 +189,7 @@ var options_wikt = {
 };
 
 //http://en.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=
-var wikt_path_const = '/w/api.php?action=query&prop=extracts&format=json' + 
+var wikt_path_const = '/w/api.php?action=query&prop=extracts&format=json' +
   '&redirects&explaintext&titles=';
 
 function toTitleCase(str)
@@ -209,26 +209,41 @@ if (typeof String.prototype.startsWith != 'function') {
 }
 
 
-const anysection_rege = /(={3,} .*? ={3,})/g;
-const ety_section = /=== Etymology (\d )?===/
-const pro_section = /=== Pronunciation (\d )?===/
-
+const anysection_rege = /(={2,} .*? ={2,})/g;
+const ety_section = /={3,} Etymology (\d )?={3,}/
+const pro_section = /={3,} Pronunciation (\d )?={3,}/
+const double_section = /^n={2} .*? ={2,}/
 
 function find_wikt_section(heading, str)
 {
-  arr = str.split(anysection_rege);
-  var result = [];
-  // does the heading exist?
-  for (s of arr) {
-      
-    if (heading.exec(s))  
-    {
-      result.push(arr[arr.indexOf(s)+1])
-    }
-  }
-  return result;
+	arr = str.split(anysection_rege);
+	var result = [];
+	var unique_headings = [];
+	var started = 0;
+	// does the heading exist?
+	for (s of arr) {
+		console.log("s: " + s);
+		if (started && anysection_rege.exec(s) && double_section.exec(s))
+		{
+			break;
+		}
 
+		if (heading.exec(s))
+		{
+			if (unique_headings.indexOf(s) == -1)
+			{
+				// add unique headings
+				unique_headings.push(s);
+				// since it was a unique heading, add it to results
+				result.push(arr[arr.indexOf(s)+1]);
+				started = 1;
+			}
+		}
+	}
+	return result;
 }
+
+var def_emojis = [":zero:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:"]
 
 wiktionary_cb_ety = function(response) {
   var str = '';
@@ -251,28 +266,33 @@ wiktionary_cb_ety = function(response) {
     catch (err) {
       console.log("Error parsing JSON string: " + str)
       PostToSlack("Wiktionary error: " + str, "--", ":urbot:");
-      options_wikt.path = '';      
+      options_wikt.path = '';
       return
     }
-        
+
     w = JSON.parse(str);
     for (prop in w.query.pages) {
       e = w.query.pages[prop].extract;
-      // translationsLoc = e.indexOf(translationsMarker)
-      // if (translationsLoc > 0)
-      // {
-      //   e = e.substring(0, e.indexOf(translationsMarker))  
-      // }
       e = find_wikt_section(ety_section, e)
-      
-      //e = utf8.encode(e);
+
       if (typeof e != 'undefined')
       {
-        e += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
+				slackStr = '';
+				var displayIndex = 1;
+				for (s in e)
+				{
+					  if (e[s].trim() != '')
+						{
+							slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
+						}
+						console.log ("s:---> " + e[s].trim());
+				}
+
+        slackStr += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
         console.log('wiktionary_cb: ' + e);
         console.log('-2-');
-        PostToSlack(e, "--", ":wiktionary:");
-      } 
+        PostToSlack(slackStr, "--", ":wiktionary:");
+      }
       else
       {
         PostToSlack("Query failed", "--", ":wiktionary:");
@@ -293,7 +313,7 @@ wiktionary_cb_pro = function(response) {
 
   //the whole response has been received, so we just print it out here
   response.on('end', function () {
-    console.log('wiktionary_cb: ' + str);
+    console.log('wiktionary_cb_pro: ' + str);
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     var w;
@@ -302,29 +322,34 @@ wiktionary_cb_pro = function(response) {
     }
     catch (err) {
       console.log("Error parsing JSON string: " + str)
-      PostToSlack("Wiktionary error: " + str, "--", ":wiktionary:");
-      options_wikt.path = '';      
+      PostToSlack("Wiktionary error: " + str, "--", ":urbot:");
+      options_wikt.path = '';
       return
     }
-        
+
     w = JSON.parse(str);
     for (prop in w.query.pages) {
       e = w.query.pages[prop].extract;
-      // translationsLoc = e.indexOf(translationsMarker)
-      // if (translationsLoc > 0)
-      // {
-      //   e = e.substring(0, e.indexOf(translationsMarker))  
-      // }
       e = find_wikt_section(pro_section, e)
-      
-      //e = utf8.encode(e);
+
       if (typeof e != 'undefined')
       {
-        e += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
+				slackStr = '';
+				var displayIndex = 1;
+				for (s in e)
+				{
+					  if (e[s].trim() != '')
+						{
+							slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
+						}
+						console.log ("s:---> " + e[s].trim());
+				}
+
+        slackStr += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
         console.log('wiktionary_cb: ' + e);
         console.log('-2-');
-        PostToSlack(e, "--", ":wiktionary:");
-      } 
+        PostToSlack(slackStr, "--", ":wiktionary:");
+      }
       else
       {
         PostToSlack("Query failed", "--", ":wiktionary:");
@@ -345,44 +370,44 @@ app.post('/wiktionary', function(req, res) {
     timestamp = parsed['timestamp'];
     date = new Date(parseInt(parsed['timestamp']) * 1000)
 
-    console.log('user ' + user_name + ' said ' 
+    console.log('user ' + user_name + ' said '
       + text + ' at ' + date.toString());
 
     opt_ety = 0; opt_pro = 0;
 
     if (text.startsWith('!wikt -e')){
-      wikt_entry = text.slice('!wikt -e'.length, text.length);  
+      wikt_entry = text.slice('!wikt -e'.length, text.length);
       opt_ety = 1;
       opt_pro = 0;
-    } 
+    }
     else if (text.startsWith('!wikt -p'))
     {
-      wikt_entry = text.slice('!wikt -p'.length, text.length);  
+      wikt_entry = text.slice('!wikt -p'.length, text.length);
       opt_ety = 0;
       opt_pro = 1;
     }
     else if (text.startsWith('!wikt ')){
       return;
-      //wikt_entry = text.slice('!wikt '.length, text.length);  
+      //wikt_entry = text.slice('!wikt '.length, text.length);
     }
-    
+
     //wiki_entry = toTitleCase(wiki_entry);
     wikt_entry = wikt_entry.replace(/ /g, '_');
     console.log('wikt_entry: ' + wikt_entry);
     options_wikt.path = wikt_path_const + wikt_entry;
     if (opt_ety) {
-      https.request(options_wikt, wiktionary_cb_ety).end();  
+      https.request(options_wikt, wiktionary_cb_ety).end();
     }
     else if (opt_pro) {
-      https.request(options_wikt, wiktionary_cb_pro).end();   
+      https.request(options_wikt, wiktionary_cb_pro).end();
     }
 
-    
+
   })).pipe(res)
 })
 // end wiktionary stuff
 
-// URBAN DICTIONARY STUFF 
+// URBAN DICTIONARY STUFF
 //http://api.urbandictionary.com/v0/define?term=kvlt
 var urbandic_options = {
 	host: 'api.urbandictionary.com',
@@ -405,17 +430,17 @@ urbandic_cb = function(response) {
     console.log('urbandic_cb: ' + str);
     console.log('-1-');
     var w;
-    
+
     try {
     	w = JSON.parse(str);
     }
     catch (err) {
     	console.log("Error parsing JSON string: " + str)
     	PostToSlack("Urban error: " + str, "--", ":urbot:");
-    	urbandic_options.path = '';    	
+    	urbandic_options.path = '';
     	return
     }
-    
+
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     //w = JSON.parse(str);
 
@@ -424,11 +449,10 @@ urbandic_cb = function(response) {
     	console.log("a:" + a.thumbs_up + ", b: " + b.thumbs_up)
     	return b.thumbs_up - a.thumbs_up;
     })
-    
+
 
     var posted = 0;
     var postStr = ""
-    var def_emojis = [":zero:", ":one:", ":two:", ":three:"]
 
     for (entry_idx in sortedList) {
     	e = sortedList[entry_idx].definition;
@@ -439,14 +463,14 @@ urbandic_cb = function(response) {
     		console.log('-2-');
     		if (sortedList[entry_idx].thumbs_up > sortedList[entry_idx].thumbs_down)
     		{
-    			//PostToSlack(e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
+    			//PostToSlack(e + " :thumbsup: " + sortedList[entry_idx].thumbs_up +
     			//"  :thumbsdown: " + sortedList[entry_idx].thumbs_down, "---", ":urbot:");
     			posted++;
-      			postStr += def_emojis[posted] + " " + e + " :thumbsup: " + sortedList[entry_idx].thumbs_up + 
+      			postStr += def_emojis[posted] + " " + e + " :thumbsup: " + sortedList[entry_idx].thumbs_up +
     			"  :thumbsdown: " + sortedList[entry_idx].thumbs_down + "\n";
 
     		}
-    	} 
+    	}
     	else
     	{
     		PostToSlack("Query failed", "--", ":urbot:");
@@ -474,13 +498,13 @@ app.post('/urbandic', function(req, res) {
 		timestamp = parsed['timestamp'];
 		date = new Date(parseInt(parsed['timestamp']) * 1000)
 
-		console.log('user ' + user_name + ' said ' 
+		console.log('user ' + user_name + ' said '
 			+ text + ' at ' + date.toString());
 
 		if (text.startsWith('!urban ')){
-			urban_entry = text.slice('!urban '.length, text.length);	
+			urban_entry = text.slice('!urban '.length, text.length);
 		}
-		
+
 		//urban_entry = toTitleCase(wiki_entry);
     urban_entry = escape(urban_entry)
 		urban_entry = urban_entry.replace(/ /g, '%20');
@@ -502,14 +526,14 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
   // Build the post string from an object
 
     post_data = JSON.stringify(
-  	{"text" : post_text, 
+  	{"text" : post_text,
   	 "username" : bot_name,
   	 "icon_emoji" : bot_emoji
   	})
 
-	//post_data = '{"text" : "' + post_text + '", "username" : "' + bot_name + 
+	//post_data = '{"text" : "' + post_text + '", "username" : "' + bot_name +
 	//'", "icon_emoji" : "' + bot_emoji + '"}';
-  
+
   console.log(post_text)
 
   // An object of options to indicate where to post to

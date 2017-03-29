@@ -17,28 +17,28 @@ post_data[0] = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!wikt -p kimchi' 
+      'text' : '!wikt -p tomato'
   });
 
 post_data[1] = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!wikt -e kimchi' 
+      'text' : '!wikt -e kimchi'
   });
 
 post_data[2] = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!wikt -e cant' 
+      'text' : '!wikt -e cant'
   });
 
 post_data[3] = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!wikt -e die' 
+      'text' : '!wikt -e die'
   });
 
 post_data[4] = querystring.stringify({
@@ -60,10 +60,10 @@ req.on('error', function (e) {
 	console.log('problem with request: ' + e.message)
 })
 req.write(post_data[0])
-req.write(post_data[1])
-req.write(post_data[2])
-req.write(post_data[3])
-req.write(post_data[4])
-//req.write(post_data[1])
-//req.write(post_data[2])
+// req.write(post_data[1])
+// req.write(post_data[2])
+// req.write(post_data[3])
+// req.write(post_data[4])
+// req.write(post_data[1])
+// req.write(post_data[2])
 req.end()

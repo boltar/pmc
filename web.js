@@ -457,7 +457,7 @@ urbandic_cb = function(response) {
     var postStr = ""
 
     for (entry_idx in sortedList) {
-      if sortedList[entry_idx].word != urbandic_options.word
+      if (sortedList[entry_idx].word != urbandic_options.word)
       {
         continue;
       }

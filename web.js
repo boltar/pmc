@@ -411,7 +411,8 @@ app.post('/wiktionary', function(req, res) {
 //http://api.urbandictionary.com/v0/define?term=kvlt
 var urbandic_options = {
 	host: 'api.urbandictionary.com',
-	path: ''
+	path: '',
+  word: ''
 };
 
 var urbandic_path_const = '/v0/define?term=';
@@ -438,6 +439,7 @@ urbandic_cb = function(response) {
     	console.log("Error parsing JSON string: " + str)
     	PostToSlack("Urban error: " + str, "--", ":urbot:");
     	urbandic_options.path = '';
+      urbandic_options.word = '';
     	return
     }
 
@@ -455,6 +457,10 @@ urbandic_cb = function(response) {
     var postStr = ""
 
     for (entry_idx in sortedList) {
+      if sortedList[entry_idx].word != urbandic_options.word
+      {
+        continue;
+      }
     	e = sortedList[entry_idx].definition;
     	//e = utf8.encode(e);
     	if (typeof e != 'undefined')
@@ -485,6 +491,7 @@ urbandic_cb = function(response) {
     PostToSlack(postStr, "--", ":urbot:");
 
     urbandic_options.path = '';
+    urbandic_options.word = '';
   });
 }
 
@@ -507,9 +514,11 @@ app.post('/urbandic', function(req, res) {
 
 		//urban_entry = toTitleCase(wiki_entry);
     urban_entry = escape(urban_entry)
+    urbandic_options.word = urban_entry;
 		urban_entry = urban_entry.replace(/ /g, '%20');
 		console.log('urban_entry: ' + urban_entry);
 		urbandic_options.path = urbandic_path_const + urban_entry;
+
 		https.request(urbandic_options, urbandic_cb).end();
 	})).pipe(res)
 })

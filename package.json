@@ -6,12 +6,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "body-parser": "^1.5.0",
-    "express": "^4.6.1",
-    "logfmt": "^1.1.2",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "logfmt": "^1.2.1",
     "map": "0.0.3",
     "mongodb": "~1.4.4",
     "mongoskin": "~1.4.5",
-    "through2-map": "^1.4.0"
+    "through2-map": "^1.4.0",
+    "utf8": "^3.0.0"
   }
 }

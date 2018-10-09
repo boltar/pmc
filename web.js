@@ -448,7 +448,7 @@ urbandic_cb = function(response) {
 
     var sortedList = w.list.slice();
     sortedList.sort(function(a, b) {
-    	console.log("a:" + a.thumbs_up + ", b: " + b.thumbs_up)
+    	//console.log("a:" + a.thumbs_up + ", b: " + b.thumbs_up)
     	return b.thumbs_up - a.thumbs_up;
     })
 
@@ -457,7 +457,9 @@ urbandic_cb = function(response) {
     var postStr = ""
 
     for (entry_idx in sortedList) {
-      if (sortedList[entry_idx].word != urbandic_options.word)
+      console.log(sortedList[entry_idx].word.toLowerCase() + ":" 
+        + urbandic_options.word.replace(/%20/g, ' ').toLowerCase())
+      if (sortedList[entry_idx].word.toLowerCase() != urbandic_options.word.replace(/%20/g, ' ').toLowerCase())
       {
         continue;
       }

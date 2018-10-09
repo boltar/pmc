@@ -37,7 +37,7 @@ post_data[3] = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!urban doff' // test common names
+      'text' : '!urban brood war' // test common names
   });
 
 var req = http.request(options, function(res) {

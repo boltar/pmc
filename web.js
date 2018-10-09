@@ -455,12 +455,19 @@ urbandic_cb = function(response) {
 
     var posted = 0;
     var postStr = ""
+    var related_words = []
 
     for (entry_idx in sortedList) {
       console.log(sortedList[entry_idx].word.toLowerCase() + ":" 
-        + urbandic_options.word.replace(/%20/g, ' ').toLowerCase())
-      if (sortedList[entry_idx].word.toLowerCase() != urbandic_options.word.replace(/%20/g, ' ').toLowerCase())
+        + unescape(urbandic_options.word.toLowerCase()))
+//      if (sortedList[entry_idx].word.toLowerCase() != urbandic_options.word.replace(/%20/g, ' ').toLowerCase())
+      if (sortedList[entry_idx].word.toLowerCase() != unescape(urbandic_options.word.toLowerCase()))
       {
+        if (related_words.indexOf(sortedList[entry_idx].word) == -1)
+        {
+          console.log("related words: " + sortedList[entry_idx].word)
+          related_words.push(sortedList[entry_idx].word);
+        }
         continue;
       }
     	e = sortedList[entry_idx].definition;
@@ -486,11 +493,23 @@ urbandic_cb = function(response) {
     	if (posted > 2)
     		break;
     }
+
+    // list related words
+    if (related_words.length > 0)
+    {
+      postStr += "related words: ";
+      for (rw in related_words)
+      {
+        postStr += related_words[rw] + ", "
+      }
+      postStr = postStr.substr(0, postStr.length - 2); // chop off ', '
+    }
+
     if (posted == 0)
     {
       PostToSlack("Query failed", "--", ":urbot:")
     }
-    PostToSlack(postStr, "--", ":urbot:");
+    PostToSlack(postStr, "--", ":urbot:");      
 
     urbandic_options.path = '';
     urbandic_options.word = '';

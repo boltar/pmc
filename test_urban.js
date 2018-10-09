@@ -37,7 +37,19 @@ post_data[3] = querystring.stringify({
       'user_id' : 'U02A2NEUX',
       'user_name' : 'boltar',
       'timestamp': '1402359176.000029', //date.getTime(),
-      'text' : '!urban brood war' // test common names
+      'text' : '!urban 80\'s' // test common names
+  });
+post_data[4] = querystring.stringify({
+      'user_id' : 'U02A2NEUX',
+      'user_name' : 'boltar',
+      'timestamp': '1402359176.000029', //date.getTime(),
+      'text' : '!urban brood wars' // test common names
+  });
+post_data[5] = querystring.stringify({
+      'user_id' : 'U02A2NEUX',
+      'user_name' : 'boltar',
+      'timestamp': '1402359176.000029', //date.getTime(),
+      'text' : '!urban taco bell' // test common names
   });
 
 var req = http.request(options, function(res) {
@@ -52,7 +64,7 @@ req.on('error', function (e) {
 })
 
 //req.write(post_data[0])
-req.write(post_data[3])
+req.write(post_data[5])
 //req.write(post_data[4]) --> will fail due to caps
 
 req.end()

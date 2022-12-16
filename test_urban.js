@@ -1,10 +1,17 @@
 
 http = require('http')
 var querystring = require('querystring');
-
+/*
 var options = {
 	hostname: 'localhost',
 	port: 5000,
+	path: '/urbandic',
+	method: 'POST'
+}
+*/
+var options = {
+	hostname: 'pmc.fly.dev',
+	port: 8080,
 	path: '/urbandic',
 	method: 'POST'
 }

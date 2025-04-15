@@ -470,7 +470,7 @@ app.post('/urbandic', function(req, res) {
 		}
 
 		//urban_entry = toTitleCase(wiki_entry);
-    urban_entry = escape(urban_entry)
+    urban_entry = escape(urban_entry.trimEnd())
     urbandic_options.word = urban_entry;
 		urban_entry = urban_entry.replace(/ /g, '%20');
 		console.log('urban_entry: ' + urban_entry);

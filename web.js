@@ -11,6 +11,10 @@ var utf8 = require('utf8');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 
+var common_headers = {
+    'User-Agent': 'pmc-slack-bot/1.0 (https://github.com/boltar/pmc; boltar@hotmail.com) node.js/' + process.version,
+    'Accept-Encoding': 'gzip'
+};
 
 app.get('/', function(req, res) {
   res.send('Hello fool!');
@@ -20,12 +24,13 @@ app.get('/', function(req, res) {
 /// wiki stuff
 var options = {
 	host: 'en.wikipedia.org',
-	path: ''
+	path: '',
+	headers: common_headers
 };
 
 var path_const = '/w/api.php?action=query&prop=extracts&format=json' +
 	'&redirects&explaintext&exintro&titles=';
-//https://en.wiktionary.org/w/api.php?format=json&action=query&rvprop=content&prop=extracts&redirects=1&explaintext&titles=Godspeed
+//https://en.wiktionary.org/w/api.php?format=json&action=query&rvprop=content&prop=extracts&redirects=1&explaintext&titles=
 
 function toTitleCase(str)
 {
@@ -104,7 +109,7 @@ app.post('/wiktor', function(req, res) {
 
 		if (text.startsWith('!wiki ')){
 			wiki_entry = text.slice('!wiki '.length, text.length);
-		} else if (text.startsWith('teh x is '))
+		} else if (text.startsWith('teh x is ')) 
 		{
 			wiki_entry = text.slice('teh x is '.length, text.length);
 		}
@@ -121,10 +126,11 @@ app.post('/wiktor', function(req, res) {
 /// wiktionary stuff
 var options_wikt = {
   host: 'en.wiktionary.org',
-  path: ''
+  path: '',
+  headers: common_headers
 };
 
-//http://en.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=
+//http://en.wiktionary.org/w/api.php?action=query&prop=extracts&format=json&redirects&explaintext&exintro&titles=Godspeed
 var wikt_path_const = '/w/api.php?action=query&prop=extracts&format=json' +
   '&redirects&explaintext&titles=';
 
@@ -214,14 +220,14 @@ wiktionary_cb_ety = function(response) {
       if (typeof e != 'undefined')
       {
 				slackStr = '';
-				var displayIndex = 1;
-				for (s in e)
-				{
-					  if (e[s].trim() != '')
-						{
-							slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
-						}
-						console.log ("s:---> " + e[s].trim());
+        var displayIndex = 1;
+        for (s in e)
+        {
+          if (e[s].trim() != '')
+          {
+            slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
+          }
+          console.log ("s:---> " + e[s].trim());
 				}
 
         slackStr += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
@@ -271,14 +277,14 @@ wiktionary_cb_pro = function(response) {
       if (typeof e != 'undefined')
       {
 				slackStr = '';
-				var displayIndex = 1;
-				for (s in e)
-				{
-					  if (e[s].trim() != '')
-						{
-							slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
-						}
-						console.log ("s:---> " + e[s].trim());
+        var displayIndex = 1;
+        for (s in e)
+        {
+          if (e[s].trim() != '')
+          {
+            slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
+          }
+          console.log ("s:---> " + e[s].trim());
 				}
 
         slackStr += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
@@ -348,7 +354,8 @@ app.post('/wiktionary', function(req, res) {
 var urbandic_options = {
 	host: 'api.urbandictionary.com',
 	path: '',
-  word: ''
+  word: '',
+  headers: common_headers
 };
 
 var urbandic_path_const = '/v0/define?term=';

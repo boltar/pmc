@@ -30,7 +30,7 @@ var options = {
 
 var path_const = '/w/api.php?action=query&prop=extracts&format=json' +
 	'&redirects&explaintext&exintro&titles=';
-//https://en.wiktionary.org/w/api.php?format=json&action=query&rvprop=content&prop=extracts&redirects=1&explaintext&titles=Godspeed
+//https://en.wiktionary.org/w/api.php?format=json&action=query&rvprop=content&prop=extracts&redirects=1&explaintext&titles=
 
 function toTitleCase(str)
 {
@@ -220,14 +220,14 @@ wiktionary_cb_ety = function(response) {
       if (typeof e != 'undefined')
       {
 				slackStr = '';
-					var displayIndex = 1;
-					for (s in e)
-					{
-					  if (e[s].trim() != '')
-						{
-							slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
-						}
-						console.log ("s:---> " + e[s].trim());
+        var displayIndex = 1;
+        for (s in e)
+        {
+          if (e[s].trim() != '')
+          {
+            slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
+          }
+          console.log ("s:---> " + e[s].trim());
 				}
 
         slackStr += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
@@ -277,14 +277,14 @@ wiktionary_cb_pro = function(response) {
       if (typeof e != 'undefined')
       {
 				slackStr = '';
-					var displayIndex = 1;
-					for (s in e)
-					{
-					  if (e[s].trim() != '')
-						{
-							slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
-						}
-						console.log ("s:---> " + e[s].trim());
+        var displayIndex = 1;
+        for (s in e)
+        {
+          if (e[s].trim() != '')
+          {
+            slackStr += def_emojis[displayIndex++] + " " + e[s].trim() + '\n\n'
+          }
+          console.log ("s:---> " + e[s].trim());
 				}
 
         slackStr += "  http://en.wiktionary.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');

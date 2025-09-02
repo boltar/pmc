@@ -12,7 +12,7 @@ var utf8 = require('utf8');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 
 var common_headers = {
-    'User-Agent': 'pmc-slack-bot/1.0 (https://github.com/carme/pmc; carme@example.com) node.js/' + process.version,
+    'User-Agent': 'pmc-slack-bot/1.0 (https://github.com/boltar/pmc; boltar@hotmail.com) node.js/' + process.version,
     'Accept-Encoding': 'gzip'
 };
 

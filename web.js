@@ -4,6 +4,7 @@ var url = require('url')
 var map = require('through2-map')
 var querystring = require ('querystring')
 var https = require('https');
+var zlib = require('zlib');
 var app = express();
 app.use(logfmt.requestLogger());
 var utf8 = require('utf8');
@@ -12,7 +13,8 @@ var utf8 = require('utf8');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
 
 var common_headers = {
-    'User-Agent': 'pmc-slack-bot/1.0 (https://github.com/boltar/pmc; boltar@hotmail.com) node.js/' + process.version
+    'User-Agent': 'pmc-slack-bot/1.0 (https://github.com/boltar/pmc; boltar@hotmail.com) node.js/' + process.version,
+    'Accept-Encoding': 'gzip'
 };
 
 app.get('/', function(req, res) {
@@ -48,31 +50,34 @@ if (typeof String.prototype.startsWith != 'function') {
 }
 
 wiktor_cb = function(response) {
-  var str = '';
+  var buffer = Buffer.alloc(0);
 
-  response.setEncoding('')
-  //another chunk of data has been recieved, so append it to `str`
+  //another chunk of data has been received, so append it to `buffer`
   response.on('data', function (chunk) {
-    str += chunk;
+    buffer = Buffer.concat([buffer, chunk]);
   });
 
   //the whole response has been received, so we just print it out here
   response.on('end', function () {
-    console.log('wiktor_cb: ' + str);
+    let body = buffer;
+    if (response.headers['content-encoding'] === 'gzip') {
+      body = zlib.gunzipSync(body);
+    }
+    let jsonStr = body.toString('utf8');
+    console.log('wiktor_cb: ' + jsonStr);
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     var w;
     try {
-    	w = JSON.parse(str);
+    	w = JSON.parse(jsonStr);
     }
     catch (err) {
-    	console.log("Error parsing JSON string: " + str)
-    	PostToSlack("Wiki error: " + str, "--", ":urbot:");
-    	options.path = '';
-    	return
+    		console.log("Error parsing JSON string: " + jsonStr)
+    		PostToSlack("Wiki error: " + jsonStr, "--", ":urbot:");
+    		options.path = '';
+    		return
     }
 
-    w = JSON.parse(str);
     for (prop in w.query.pages) {
     	e = w.query.pages[prop].extract;
       e += "  http://en.wikipedia.org/wiki/" + w.query.pages[prop].title.replace(/ /g, '_');
@@ -187,31 +192,34 @@ function find_wikt_section(heading, str)
 var def_emojis = [":zero:", ":one:", ":two:", ":three:", ":four:", ":five:", ":six:"]
 
 wiktionary_cb_ety = function(response) {
-  var str = '';
+  var buffer = Buffer.alloc(0);
 
-  response.setEncoding('')
-  //another chunk of data has been recieved, so append it to `str`
+  //another chunk of data has been received, so append it to `buffer`
   response.on('data', function (chunk) {
-    str += chunk;
+    buffer = Buffer.concat([buffer, chunk]);
   });
 
   //the whole response has been received, so we just print it out here
   response.on('end', function () {
-    console.log('wiktionary_cb: ' + str);
+    let body = buffer;
+    if (response.headers['content-encoding'] === 'gzip') {
+      body = zlib.gunzipSync(body);
+    }
+    let jsonStr = body.toString('utf8');
+    console.log('wiktionary_cb: ' + jsonStr);
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     var w;
     try {
-      w = JSON.parse(str);
+      w = JSON.parse(jsonStr);
     }
     catch (err) {
-      console.log("Error parsing JSON string: " + str)
-      PostToSlack("Wiktionary error: " + str, "--", ":urbot:");
+      console.log("Error parsing JSON string: " + jsonStr)
+      PostToSlack("Wiktionary error: " + jsonStr, "--", ":urbot:");
       options_wikt.path = '';
       return
     }
 
-    w = JSON.parse(str);
     for (prop in w.query.pages) {
       e = w.query.pages[prop].extract;
       e = find_wikt_section(ety_section, e)
@@ -244,31 +252,34 @@ wiktionary_cb_ety = function(response) {
 }
 
 wiktionary_cb_pro = function(response) {
-  var str = '';
+  var buffer = Buffer.alloc(0);
 
-  response.setEncoding('')
-  //another chunk of data has been recieved, so append it to `str`
+  //another chunk of data has been received, so append it to `buffer`
   response.on('data', function (chunk) {
-    str += chunk;
+    buffer = Buffer.concat([buffer, chunk]);
   });
 
   //the whole response has been received, so we just print it out here
   response.on('end', function () {
-    console.log('wiktionary_cb_pro: ' + str);
+    let body = buffer;
+    if (response.headers['content-encoding'] === 'gzip') {
+      body = zlib.gunzipSync(body);
+    }
+    let jsonStr = body.toString('utf8');
+    console.log('wiktionary_cb_pro: ' + jsonStr);
     console.log('-1-');
     //var ic = new iconv.Iconv('utf-8', 'utf-8')
     var w;
     try {
-      w = JSON.parse(str);
+      w = JSON.parse(jsonStr);
     }
     catch (err) {
-      console.log("Error parsing JSON string: " + str)
-      PostToSlack("Wiktionary error: " + str, "--", ":urbot:");
+      console.log("Error parsing JSON string: " + jsonStr)
+      PostToSlack("Wiktionary error: " + jsonStr, "--", ":urbot:");
       options_wikt.path = '';
       return
     }
 
-    w = JSON.parse(str);
     for (prop in w.query.pages) {
       e = w.query.pages[prop].extract;
       e = find_wikt_section(pro_section, e)
@@ -360,29 +371,33 @@ var urbandic_options = {
 var urbandic_path_const = '/v0/define?term=';
 
 urbandic_cb = function(response) {
-  var str = '';
+  var buffer = Buffer.alloc(0);
 
-  response.setEncoding('')
-  //another chunk of data has been recieved, so append it to `str`
+  //another chunk of data has been received, so append it to `buffer`
   response.on('data', function (chunk) {
-    str += chunk;
+    buffer = Buffer.concat([buffer, chunk]);
   });
 
   //the whole response has been received, so we just print it out here
   response.on('end', function () {
-    console.log('urbandic_cb: ' + str);
+    let body = buffer;
+    if (response.headers['content-encoding'] === 'gzip') {
+      body = zlib.gunzipSync(body);
+    }
+    let jsonStr = body.toString('utf8');
+    console.log('urbandic_cb: ' + jsonStr);
     console.log('-1-');
     var w;
 
     try {
-    	w = JSON.parse(str);
+    	w = JSON.parse(jsonStr);
     }
     catch (err) {
-    	console.log("Error parsing JSON string: " + str)
-    	PostToSlack("Urban error: " + str, "--", ":urbot:");
-    	urbandic_options.path = '';
-      urbandic_options.word = '';
-    	return
+    		console.log("Error parsing JSON string: " + jsonStr)
+    		PostToSlack("Urban error: " + jsonStr, "--", ":urbot:");
+    		urbandic_options.path = '';
+        urbandic_options.word = '';
+    		return
     }
 
     //var ic = new iconv.Iconv('utf-8', 'utf-8')

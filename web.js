@@ -11,6 +11,7 @@ var utf8 = require('utf8');
 //var urban = require('urban')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+var global_response_url = null;
 
 var common_headers = {
     'User-Agent': 'pmc-slack-bot/1.0 (https://github.com/boltar/pmc; boltar@hotmail.com) node.js/' + process.version,
@@ -73,7 +74,7 @@ wiktor_cb = function(response) {
     }
     catch (err) {
     		console.log("Error parsing JSON string: " + jsonStr)
-    		PostToSlack("Wiki error: " + jsonStr, "--", ":urbot:");
+    		PostToSlack("Wiki error: " + jsonStr, "--", ":urbot:", global_response_url);
     		options.path = '';
     		return
     }
@@ -86,14 +87,15 @@ wiktor_cb = function(response) {
     	{
     		console.log('wiktor_cb: ' + e);
     		console.log('-2-');
-    		PostToSlack(e, "--", ":wiktor:");
+    		PostToSlack(e, "--", ":wiktor:", global_response_url);
     	}
     	else
     	{
-    		PostToSlack("Query failed", "--", ":wiktor:");
+    		PostToSlack("Query failed", "--", ":wiktor:", global_response_url);
     	}
     }
     options.path = '';
+    global_response_url = null;
   });
 }
 
@@ -121,6 +123,7 @@ app.post('/wiktor', function(req, res) {
 		//wiki_entry = toTitleCase(wiki_entry);
 		wiki_entry = wiki_entry.replace(/ /g, '_');
 		console.log('wiki_entry: ' + wiki_entry);
+		global_response_url = parsed['response_url'];
 		options.path = path_const + wiki_entry;
 		https.request(options, wiktor_cb).end();
 	})).pipe(res)
@@ -509,7 +512,7 @@ app.listen(port, function() {
 });
 
 
-function PostToSlack(post_text, bot_name, bot_emoji) {
+function PostToSlack(post_text, bot_name, bot_emoji, response_url) {
   // Build the post string from an object
 
     post_data = JSON.stringify(
@@ -520,18 +523,31 @@ function PostToSlack(post_text, bot_name, bot_emoji) {
 
   console.log(post_text)
 
-//  	path_str = '/services/T02A3F3HL/B02HHGRBB/elVSjmbP1vZbze9E58WLCPQs'; //#testing
-  	path_str = '/services/T02A3F3HL/B02CW9LCG/mcmbhcqQpfoU2THsofvad3VA'; //#legible
+if (response_url) {
+  var parsed_url = url.parse(response_url);
   var post_options = {
-      host: 'hooks.slack.com',
-      port: '443',
-      path: path_str,
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(post_data, 'utf8')
-      }
+    host: parsed_url.hostname,
+    port: parsed_url.port || 443,
+    path: parsed_url.path,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(post_data, 'utf8')
+    }
   };
+} else {
+  path_str = '/services/T02A3F3HL/B02CW9LCG/mcmbhcqQpfoU2THsofvad3VA'; //#legible
+  var post_options = {
+    host: 'hooks.slack.com',
+    port: '443',
+    path: path_str,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(post_data, 'utf8')
+    }
+  };
+}
 
   // Set up the request
   var post_req = https.request(post_options, function(res) {
